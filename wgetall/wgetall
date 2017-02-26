@@ -17,8 +17,8 @@
 # for this script to run succesfully, you need 
 # to have this tools installed on your machine:
 #
-# * lynx	[http://lynx.browser.org/]
-# * wget	[http://www.gnu.org/software/wget/wget.html]
+# * lynx  [http://lynx.browser.org/]
+# * wget  [http://www.gnu.org/software/wget/wget.html]
 # * python
 
 unprotected_audio='m4a|ogg|flac'
@@ -55,7 +55,7 @@ groups:
 
 cleanUp() 
 {
-	rm -f "$downlist"
+  rm -f "$downlist"
 }
 
 help=0
@@ -65,37 +65,37 @@ force=0
 removedownlist=1
 while [[ $# > 0 ]]
 do
-	key="$1"
+  key="$1"
 
-	case $key in
-		-h|--help)
-			help=1
-			;;
-		-e|--extension)
-			ext="$2"; optCnt=$((optCnt+1))
-			shift # past argument
-			;;
-		-t|--type)
-			type="$2"; optCnt=$((optCnt+1))
-			shift # past argument
-			;;
-		-r|--regex)
-			regex="$2"; optCnt=$((optCnt+1))
-			shift # past argument
-			;;
-		-l|--list)
-			downlist="$2"; optCnt=$((optCnt+1))
-			removedownlist=0 ; url='filelist'  # just to avoid params check to fail
-			shift # past argument
-			;;
-		-f|--force)
-			force=1
-			;;
-		*)
-			url=$key
-			;;
-	esac
-	shift # past argument or value
+  case $key in
+    -h|--help)
+      help=1
+      ;;
+    -e|--extension)
+      ext="$2"; optCnt=$((optCnt+1))
+      shift # past argument
+      ;;
+    -t|--type)
+      type="$2"; optCnt=$((optCnt+1))
+      shift # past argument
+      ;;
+    -r|--regex)
+      regex="$2"; optCnt=$((optCnt+1))
+      shift # past argument
+      ;;
+    -l|--list)
+      downlist="$2"; optCnt=$((optCnt+1))
+      removedownlist=0 ; url='filelist'  # just to avoid params check to fail
+      shift # past argument
+      ;;
+    -f|--force)
+      force=1
+      ;;
+    *)
+      url=$key
+      ;;
+  esac
+  shift # past argument or value
 done
 
 if [ "$help" -eq 1 ]; then
@@ -103,31 +103,31 @@ if [ "$help" -eq 1 ]; then
 fi
 
 if [ -z "$url" ]; then
-	echo "No URL specified" ; usage
+  echo "No URL specified" ; usage
 fi
 if [ 1 -ne "$optCnt" ] ; then
-	echo "Specify one among 'type', 'extension', 'regex' or 'list'" ; usage
+  echo "Specify one among 'type', 'extension', 'regex' or 'list'" ; usage
 fi
 
 
 if [ ! -z "$type" ]; then
-	case "$type" in
-		audio) ext=$audio
-		;;
-		lossy_audio) ext=$lossy_audio
-		;;
-		lossless_audio) ext=$lossless_audio
-		;;
-		video) ext=$video
-		;;
-		*) echo "Unmatched type $type" ; usage
-		;;
-	esac
-	regex="\.($ext)"'$'
+  case "$type" in
+    audio) ext=$audio
+    ;;
+    lossy_audio) ext=$lossy_audio
+    ;;
+    lossless_audio) ext=$lossless_audio
+    ;;
+    video) ext=$video
+    ;;
+    *) echo "Unmatched type $type" ; usage
+    ;;
+  esac
+  regex="\.($ext)"'$'
 else
-	if [ ! -z "$ext" ]; then
-		regex="\.$ext"'$'
-	fi
+  if [ ! -z "$ext" ]; then
+    regex="\.$ext"'$'
+  fi
 fi
 
 shopt -s expand_aliases
@@ -138,30 +138,30 @@ alias urlencode='python -c "import sys, urllib as ul;[sys.stdout.write(ul.quote(
 echo "Looking for $ext files..."
 
 if [ -z "$downlist" ]; then
-	downlist="downlist_$$.tmp"
+  downlist="downlist_$$.tmp"
 
-	# Extracting matching links
-	lynx -listonly -nonumbers -dump "$url" | egrep "$regex" | urldecode | urlencode > "$downlist"
+  # Extracting matching links
+  lynx -listonly -nonumbers -dump "$url" | egrep "$regex" | urldecode | urlencode > "$downlist"
 
-	if [ 0 -eq "$force" ]; then
-		more "$downlist"
-		echo -n 'Proceede downloading? (y/n): '
-		read answer
-		if echo "$answer" | grep -iq "^y" ; then
-			echo ""
-		else
-			echo "Exiting... "; 
-			cleanUp;
-			exit 0
-		fi
-	fi
+  if [ 0 -eq "$force" ]; then
+    more "$downlist"
+    echo -n 'Proceede downloading? (y/n): '
+    read answer
+    if echo "$answer" | grep -iq "^y" ; then
+      echo ""
+    else
+      echo "Exiting... "; 
+      cleanUp;
+      exit 0
+    fi
+  fi
 fi
 # Downloading files
 wget --continue -i "$downlist"
 
 if [ 1 -eq "$removedownlist" ]; then
-	# Removing list of matching files
-	cleanUp
+  # Removing list of matching files
+  cleanUp
 fi
 
 exit 0
