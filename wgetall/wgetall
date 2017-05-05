@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #
-# wgetall v0.5.4
-# LAST EDIT: 2017-02-26 14:24 CEST
+# wgetall v0.5.5
+# LAST EDIT: 2017-05-05 08:00 CEST
 #
 # AUTHOR: Massimo Pasquini
 #
@@ -156,8 +156,12 @@ if [ -z "$downlist" ]; then
     fi
   fi
 fi
+
 # Downloading files
-wget --continue -i "$downlist"
+# --continue                resume a previously interrupted downloading
+# --no-check-certificate    skip checking SSL certificate: useful on sites with broken certificate
+#                           NOTICE you also need to set FORCE_SSL_PROMPT=no in lynx.cfg file
+wget --continue --no-check-certificate -i "$downlist"
 
 if [ 1 -eq "$removedownlist" ]; then
   # Removing list of matching files
