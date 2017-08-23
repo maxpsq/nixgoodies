@@ -2,7 +2,7 @@
 
 #
 # wgetall v0.6.0
-# LAST EDIT: 2017-08-23 23:58 CEST
+# LAST EDIT: 2017-08-24 00:15 CEST
 #
 # AUTHOR: Massimo Pasquini
 #
@@ -94,7 +94,7 @@ do
       force=1
       ;;
     -d|--dump)
-      dump=1 ; url='filelist'  # just to avoid params check to fail
+      dump=1 
       ;;
     *)
       url=$key
@@ -113,7 +113,10 @@ fi
 if [ 1 -ne "$optCnt" ] ; then
   echo "Specify one among 'type', 'extension', 'regex' or 'list'" ; usage
 fi
-if [ 1 -eq "$dump" ] ; then
+if [ ! -z "$downlist" ]; then
+  dump=0
+fi
+if [ -z "$url" ]; then
   force=1 ; removedownlist=0 ; downlist=''
 fi
 
