@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #
-# wgetall v0.5.5
-# LAST EDIT: 2017-05-05 08:00 CEST
+# wgetall v0.6.0
+# LAST EDIT: 2017-08-23 23:58 CEST
 #
 # AUTHOR: Massimo Pasquini
 #
@@ -32,13 +32,14 @@ function usage()
 {
   usage="Usage:
 
-`basename $0`  -h|--help  -t|--type type  -e|--extension ext  -r|--regex regex  -l|--list listfile  -f|--force  url
+`basename $0`  -h|--help  -t|--type type  -e|--extension ext  -r|--regex regex  -l|--list listfile  -y|--yes-to-all  -d|--dump  url
   -h|--help            : show this help
   -t|--type type       : download all file belonging to a specific group (see below)
   -e|--extension ext   : download all the files having the given extension
   -r|--regex regex     : download all the files matching the given regular expression pattern
   -l|--list listfile   : download all the URLs listed in the given file
-  -c|--force           : download all the matching URLs without asking for confirmation
+  -y|--yes-to-all      : download all the matching URLs without asking for confirmation
+  -d|--dump            : extract the matching links 
   url                  : the URL you want to scrape for collecting links
 
 groups:
@@ -62,6 +63,7 @@ help=0
 regex=''
 optCnt=0
 force=0
+dump=0
 removedownlist=1
 while [[ $# > 0 ]]
 do
@@ -88,8 +90,11 @@ do
       removedownlist=0 ; url='filelist'  # just to avoid params check to fail
       shift # past argument
       ;;
-    -f|--force)
+    -y|--yes-to-all)
       force=1
+      ;;
+    -d|--dump)
+      dump=1 ; url='filelist'  # just to avoid params check to fail
       ;;
     *)
       url=$key
@@ -108,7 +113,9 @@ fi
 if [ 1 -ne "$optCnt" ] ; then
   echo "Specify one among 'type', 'extension', 'regex' or 'list'" ; usage
 fi
-
+if [ 1 -eq "$dump" ] ; then
+  force=1 ; removedownlist=0 ; downlist=''
+fi
 
 if [ ! -z "$type" ]; then
   case "$type" in
@@ -135,14 +142,17 @@ shopt -s expand_aliases
 alias urldecode='python -c "import sys, urllib as ul;[sys.stdout.write(ul.unquote_plus(lnk)) for lnk in sys.stdin]"'
 alias urlencode='python -c "import sys, urllib as ul;[sys.stdout.write(ul.quote(lnk,safe=\"\n/:\")) for lnk in sys.stdin]"'
 
-echo "Looking for $ext files..."
+#echo "Looking for $ext files..."
 
 if [ -z "$downlist" ]; then
   downlist="downlist_$$.tmp"
 
   # Extracting matching links
-  lynx -listonly -nonumbers -dump "$url" | egrep "$regex" | urldecode | urlencode > "$downlist"
-
+  if [ 0 -eq "$dump" ] ; then
+    lynx -listonly -nonumbers -dump "$url" | egrep "$regex" | urldecode | urlencode > "$downlist"
+  else
+    lynx -listonly -nonumbers -dump "$url" | egrep "$regex" | urldecode | urlencode
+  fi
   if [ 0 -eq "$force" ]; then
     more "$downlist"
     echo -n 'Proceede downloading? (y/n): '
@@ -157,11 +167,13 @@ if [ -z "$downlist" ]; then
   fi
 fi
 
+if [ 0 -eq "$dump" ] ; then
 # Downloading files
 # --continue                resume a previously interrupted downloading
 # --no-check-certificate    skip checking SSL certificate: useful on sites with broken certificate
 #                           NOTICE you also need to set FORCE_SSL_PROMPT=no in lynx.cfg file
-wget --continue --no-check-certificate -i "$downlist"
+  wget --continue --no-check-certificate -i "$downlist"
+fi
 
 if [ 1 -eq "$removedownlist" ]; then
   # Removing list of matching files
